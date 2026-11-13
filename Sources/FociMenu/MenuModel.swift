@@ -8,8 +8,6 @@ import UniformTypeIdentifiers
 @MainActor
 @Observable
 final class MenuModel {
-  static let defaultSymbol = "person.crop.circle"
-
   private let store = FileStore()
   private(set) var config: Config?
   private(set) var configError: String?
@@ -55,10 +53,10 @@ final class MenuModel {
   }
 
   func symbol(for profile: String?) -> String {
-    profile.flatMap { config?.profiles[$0]?.symbol } ?? Self.defaultSymbol
+    profile.flatMap { config?.profiles[$0]?.symbol } ?? Profile.defaultSymbol
   }
 
-  var menuBarSymbol: String { busy ? "arrow.triangle.2.circlepath" : symbol(for: state.current) }
+  var menuBarIcon: MenuBarIcon { MenuBarIcon(config: config, current: state.current, busy: busy) }
 
   func switchTo(_ profile: String) {
     guard let config, !busy, profile != state.current else { return }

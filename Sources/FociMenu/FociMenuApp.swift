@@ -15,7 +15,7 @@ struct FociMenuApp: App {
     MenuBarExtra {
       MenuContent(model: model)
     } label: {
-      MenuBarLabel(symbol: model.menuBarSymbol)
+      MenuBarLabel(icon: model.menuBarIcon)
     }
 
     Window("Foci Settings", id: Self.settingsWindow) {
@@ -43,15 +43,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 /// The menu bar label is the one view alive for the app's whole life, so it is where a reopen
 /// can reach `openWindow`.
 struct MenuBarLabel: View {
-  let symbol: String
+  let icon: MenuBarIcon
   @Environment(\.openWindow) private var openWindow
 
   var body: some View {
-    Image(systemName: symbol)
+    image
       .onReceive(NotificationCenter.default.publisher(for: AppDelegate.reopened)) { _ in
         openWindow(id: FociMenuApp.settingsWindow)
         NSApplication.shared.activate()
       }
+  }
+
+  private var image: Image {
+    switch icon {
+    case .symbol(let name): Image(systemName: name)
+    // `swift run` has no asset catalog; only the bundled app carries the glyph.
+    case .foci:
+      NSImage(named: "MenuBarIcon").map(Image.init(nsImage:)) ?? Image(systemName: "circle.circle")
+    }
   }
 }
 

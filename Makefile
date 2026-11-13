@@ -22,7 +22,8 @@ app:
 icon:
 	python3 icon/render.py
 
-# Fails if the committed icon drifted from what icon/render.py draws.
+# Fails if the committed icons drifted from what icon/render.py draws.
 icon-check:
-	python3 icon/render.py build/icon-check/AppIcon.icon
+	python3 icon/render.py build/icon-check
 	diff -r build/icon-check/AppIcon.icon icon/AppIcon.icon
+	diff -r build/icon-check/Glyphs.xcassets icon/Glyphs.xcassets

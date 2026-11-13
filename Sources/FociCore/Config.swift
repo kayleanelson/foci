@@ -1,6 +1,8 @@
 import Foundation
 
 public struct Profile: Codable, Equatable, Sendable {
+  public static let defaultSymbol = "person.crop.circle"
+
   public var symbol: String?
   public var wallpaper: String?
   public var obsidianVault: String?

@@ -195,7 +195,7 @@ private struct ProfileDetail: View {
   }
 
   private var symbolGrid: some View {
-    let selected = profile.symbol ?? MenuModel.defaultSymbol
+    let selected = profile.symbol ?? Profile.defaultSymbol
     return LazyVGrid(columns: Array(repeating: GridItem(.fixed(30)), count: 8), spacing: 6) {
       ForEach(Self.symbols, id: \.self) { symbol in
         Button {

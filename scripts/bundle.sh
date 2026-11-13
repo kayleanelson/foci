@@ -14,7 +14,7 @@ mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 cp scripts/Info.plist "$app/Contents/Info.plist"
 cp "$bin/FociMenu" "$app/Contents/MacOS/Foci"
 cp "$bin/foci" "$app/Contents/Resources/foci"
-xcrun actool icon/AppIcon.icon --compile "$app/Contents/Resources" --app-icon AppIcon \
+xcrun actool icon/AppIcon.icon icon/Glyphs.xcassets --compile "$app/Contents/Resources" --app-icon AppIcon \
   --platform macosx --minimum-deployment-target 14.0 \
   --output-partial-info-plist build/icon-partial.plist >/dev/null
 codesign --force --sign - "$app"
