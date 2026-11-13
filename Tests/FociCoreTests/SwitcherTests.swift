@@ -45,7 +45,7 @@ import Testing
     #expect(report == SwitchReport(outcome: .switched))
     #expect(
       system.effects == [
-        "quit slack", "quit md.obsidian", "wallpaper /Users/k/home.heic", "writeDock",
+        "wallpaper /Users/k/home.heic", "writeDock", "quit slack", "quit md.obsidian",
         "writeObsidian", "open obsidian://open?path=/Users/k/Home",
       ])
     #expect(store.state.current == "personal")
@@ -197,6 +197,35 @@ import Testing
         SwitchRequest(target: to), system: system, store: MemoryStore(state: State(current: from)))
       #expect(system.running.isSubset(of: running))
     }
+  }
+
+  @Test func wallpaperAndDockChangeBeforeAnyAppIsAskedToQuit() async throws {
+    let system = FakeSystem(running: ["slack", ObsidianVaults.bundleID])
+    let store = MemoryStore(state: State(current: "work"))
+    store.docks["personal"] = try DockLayout.encode(["persistent-apps": ["saved"]])
+    _ = try await run(SwitchRequest(target: "personal"), system: system, store: store)
+    let firstQuit = system.effects.firstIndex { $0.hasPrefix("quit") }!
+    #expect(system.effects.firstIndex { $0.hasPrefix("wallpaper") }! < firstQuit)
+    #expect(system.effects.firstIndex(of: "writeDock")! < firstQuit)
+  }
+
+  @Test func appsQuitSideBySideAndASlowOneHoldsUpNoOther() async throws {
+    let system = FakeSystem(running: ["slack", "outlook", ObsidianVaults.bundleID])
+    system.quitDelays = ["slack": .milliseconds(100)]
+    let busier = Config(profiles: [
+      "work": Profile(obsidianVault: "~/Work", apps: ["slack", "outlook"]),
+      "personal": Profile(obsidianVault: "~/Home"),
+    ])
+    _ = try await Switcher(
+      config: busier, system: system, store: MemoryStore(state: State(current: "work")),
+      home: "/Users/k"
+    ).run(SwitchRequest(target: "personal"))
+
+    let log = system.log
+    let slackDone = log.firstIndex(of: "quitted slack")!
+    #expect(log.firstIndex(of: "quit outlook")! < slackDone)
+    #expect(log.firstIndex(of: "quit md.obsidian")! < slackDone)
+    #expect(log.firstIndex(of: "writeObsidian")! < slackDone)
   }
 
   @Test func unknownTargetChangesNothing() async throws {

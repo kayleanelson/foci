@@ -11,6 +11,7 @@ final class FakeSystem: System {
   var running: Set<String>
   var refusesToQuit: Set<String> = []
   var failing: Set<String> = []
+  var quitDelays: [String: Duration] = [:]
   var dock: [String: Any] = ["persistent-apps": ["current"], "tilesize": 48]
   var obsidianConfig = Data(
     #"{"vaults":{"w":{"path":"/Users/k/Work","open":true},"p":{"path":"/Users/k/Home"}}}"#.utf8)
@@ -30,6 +31,8 @@ final class FakeSystem: System {
 
   func quit(_ bundleID: String) async -> Bool {
     log.append("quit \(bundleID)")
+    if let delay = quitDelays[bundleID] { try? await Task.sleep(for: delay) }
+    log.append("quitted \(bundleID)")
     if refusesToQuit.contains(bundleID) { return false }
     running.remove(bundleID)
     return true
@@ -63,7 +66,7 @@ final class FakeSystem: System {
   }
 
   /// Calls that change something, in order: the part of the log a switch is judged by.
-  var effects: [String] { log.filter { !$0.hasPrefix("read") } }
+  var effects: [String] { log.filter { !$0.hasPrefix("read") && !$0.hasPrefix("quitted") } }
 }
 
 @MainActor
