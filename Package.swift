@@ -8,6 +8,7 @@ let package = Package(
     .target(name: "FociCore"),
     .target(name: "FociSystem", dependencies: ["FociCore"]),
     .executableTarget(name: "foci", dependencies: ["FociCore", "FociSystem"]),
+    .executableTarget(name: "FociMenu", dependencies: ["FociCore", "FociSystem"]),
     .testTarget(name: "FociCoreTests", dependencies: ["FociCore"]),
     .testTarget(name: "FociSystemTests", dependencies: ["FociSystem"]),
   ]

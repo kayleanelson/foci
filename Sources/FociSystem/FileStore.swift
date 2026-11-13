@@ -14,6 +14,10 @@ public struct FileStore: Store {
     self.directory = directory
   }
 
+  /// Posted machine-wide on every state save, so the menu bar app reflects switches the CLI
+  /// makes (a Focus automation, say).
+  public static let stateChanged = Notification.Name("local.foci.stateChanged")
+
   public var configURL: URL { directory.appending(path: "config.json") }
   var stateURL: URL { directory.appending(path: "state.json") }
   func dockURL(for profile: String) -> URL { directory.appending(path: "docks/\(profile).plist") }
@@ -34,6 +38,8 @@ public struct FileStore: Store {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     try write(encoder.encode(state), to: stateURL)
+    DistributedNotificationCenter.default().postNotificationName(
+      Self.stateChanged, object: nil, deliverImmediately: true)
   }
 
   public func loadDock(for profile: String) throws -> Data? {
