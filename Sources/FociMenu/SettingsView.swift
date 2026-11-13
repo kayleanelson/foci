@@ -110,10 +110,13 @@ private struct ProfileDetail: View {
         ForEach(profile.apps, id: \.self) { bundleID in appRow(bundleID) }
         Button("Add Apps…") { model.addApps(to: name) }
       } header: {
-        Text("Apps")
+        Text("Apps to Quit on Switch")
       } footer: {
-        Text("Quit when you switch to another profile. Apps in every profile are left alone.")
-          .foregroundStyle(.secondary)
+        Text(
+          "Quit when you switch to another profile. Not related to the Dock, which is "
+            + "remembered as you arrange it. Apps listed in more than one profile are left alone."
+        )
+        .foregroundStyle(.secondary)
       }
 
       if let error = model.settingsError {

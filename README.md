@@ -24,7 +24,7 @@ Each profile has:
   profile and that's saved when you switch away; choosing one in Settings
   replaces it (and applies immediately to the profile you're in).
 - **Obsidian vault**: opened when you switch in.
-- **Apps**: quit when you switch to another profile. Apps listed in more than
+- **Apps to Quit on Switch**: quit when you switch to another profile. Apps listed in more than
   one profile, or in none, are never quit.
 
 Settings saves to `~/Library/Application Support/foci/config.json`, which you
