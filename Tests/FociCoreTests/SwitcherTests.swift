@@ -19,6 +19,16 @@ import Testing
       .run(request)
   }
 
+  func dockApp(_ id: String) -> [String: Any] {
+    ["tile-data": ["bundle-identifier": id]]
+  }
+
+  func dockApps(_ prefs: [String: Any]) -> [String] {
+    (prefs["persistent-apps"] as! [[String: Any]]).compactMap {
+      ($0["tile-data"] as? [String: Any])?["bundle-identifier"] as? String
+    }
+  }
+
   func openVaults(_ data: Data) throws -> Set<String> {
     let root = try JSONSerialization.jsonObject(with: data) as! [String: Any]
     let vaults = root["vaults"] as! [String: [String: Any]]
@@ -56,9 +66,35 @@ import Testing
     #expect(system.dock["tilesize"] as? Int == 48)
   }
 
-  @Test func profileWithNoSavedDockKeepsTheCurrentDock() async throws {
+  @Test func profileWithNoSavedDockKeepsTheCurrentDockApartFromOtherProfilesApps() async throws {
     let system = FakeSystem()
-    _ = try await run(SwitchRequest(target: "personal"), system: system, store: MemoryStore())
+    system.dock = ["persistent-apps": [dockApp("slack"), dockApp("shared"), dockApp("finder")]]
+    _ = try await run(
+      SwitchRequest(target: "personal"), system: system,
+      store: MemoryStore(state: State(current: "work")))
+    #expect(dockApps(system.dock) == ["shared", "finder"])
+  }
+
+  @Test(arguments: [nil, ["slack", "messages", "shared"]] as [[String]?])
+  func otherProfilesOnlyAppsNeverSurviveIntoTheDock(saved: [String]?) async throws {
+    let system = FakeSystem()
+    system.dock = ["persistent-apps": [dockApp("slack"), dockApp("messages")]]
+    let store = MemoryStore(state: State(current: "work"))
+    if let saved {
+      store.docks["personal"] = try DockLayout.encode(["persistent-apps": saved.map(dockApp)])
+    }
+    _ = try await run(SwitchRequest(target: "personal"), system: system, store: store)
+    let otherOnly = Set(config.profiles["work"]!.apps).subtracting(
+      config.profiles["personal"]!.apps)
+    #expect(Set(dockApps(system.dock)).isDisjoint(with: otherOnly))
+  }
+
+  @Test func dockWithNothingToChangeIsNotRewritten() async throws {
+    let system = FakeSystem()
+    system.dock = ["persistent-apps": [dockApp("finder")]]
+    _ = try await run(
+      SwitchRequest(target: "personal"), system: system,
+      store: MemoryStore(state: State(current: "work")))
     #expect(!system.effects.contains("writeDock"))
   }
 

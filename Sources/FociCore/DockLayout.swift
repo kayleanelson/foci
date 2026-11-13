@@ -13,6 +13,19 @@ public enum DockLayout {
     prefs.merging(snapshot.filter { keys.contains($0.key) }) { _, saved in saved }
   }
 
+  /// Matches tiles by `tile-data.bundle-identifier`; spacers, folders and apps without one stay.
+  public static func removingApps(_ bundleIDs: Set<String>, from prefs: [String: Any])
+    -> [String: Any]
+  {
+    guard let tiles = prefs["persistent-apps"] as? [[String: Any]] else { return prefs }
+    var result = prefs
+    result["persistent-apps"] = tiles.filter { tile in
+      let tileData = tile["tile-data"] as? [String: Any]
+      return !bundleIDs.contains(tileData?["bundle-identifier"] as? String ?? "")
+    }
+    return result
+  }
+
   public static func encode(_ snapshot: [String: Any]) throws -> Data {
     try PropertyListSerialization.data(fromPropertyList: snapshot, format: .xml, options: 0)
   }

@@ -51,3 +51,42 @@ import Testing
     #expect((result["persistent-others"] as? [Any])?.count == 1)
   }
 }
+
+@Suite struct DockRemovalTests {
+  static func app(_ id: String) -> [String: Any] {
+    ["tile-data": ["bundle-identifier": id, "file-label": id], "tile-type": "file-tile"]
+  }
+  static var spacer: [String: Any] {
+    ["tile-data": [:] as [String: Any], "tile-type": "spacer-tile"]
+  }
+
+  static var prefs: [String: Any] {
+    [
+      "persistent-apps": [app("slack"), spacer, app("photos"), app("zoom")],
+      "persistent-others": [app("slack")],
+      "tilesize": 48,
+    ]
+  }
+
+  func appIDs(_ prefs: [String: Any]) -> [String] {
+    (prefs["persistent-apps"] as! [[String: Any]]).map {
+      ($0["tile-data"] as! [String: Any])["bundle-identifier"] as? String ?? "spacer"
+    }
+  }
+
+  @Test func removesOnlyTheNamedApps() {
+    let result = DockLayout.removingApps(["slack", "zoom", "absent"], from: Self.prefs)
+    #expect(appIDs(result) == ["spacer", "photos"])
+  }
+
+  @Test func onlyTouchesPersistentApps() {
+    let result = DockLayout.removingApps(["slack"], from: Self.prefs)
+    #expect((result["persistent-others"] as? [Any])?.count == 1)
+    #expect(result["tilesize"] as? Int == 48)
+  }
+
+  @Test func removingNothingChangesNothing() {
+    let result = DockLayout.removingApps([], from: Self.prefs)
+    #expect(NSDictionary(dictionary: result).isEqual(to: Self.prefs))
+  }
+}

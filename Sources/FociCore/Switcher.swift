@@ -110,10 +110,16 @@ public struct Switcher {
       await attempt("Wallpaper") { try system.setWallpaper(expandingTilde(wallpaper, home: home)) }
     }
 
+    // Stripping runs on saved Docks too, so a Dock saved before an app was added to another
+    // profile can't bring that app back.
     await attempt("Dock") {
-      guard let saved = try store.loadDock(for: target) else { return }
-      try system.writeDockPrefs(
-        DockLayout.applying(try DockLayout.decode(saved), to: try system.readDockPrefs()))
+      let current = try system.readDockPrefs()
+      var dock = current
+      if let saved = try store.loadDock(for: target) {
+        dock = DockLayout.applying(try DockLayout.decode(saved), to: dock)
+      }
+      dock = DockLayout.removingApps(Set(appsToQuit), from: dock)
+      if !NSDictionary(dictionary: dock).isEqual(to: current) { try system.writeDockPrefs(dock) }
     }
 
     // Obsidian rewrites obsidian.json when it quits, so edit it only once Obsidian is gone.

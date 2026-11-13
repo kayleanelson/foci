@@ -41,10 +41,12 @@ Turn on **Launch at Login** from the menu.
 
 ## The Dock
 
-There's nothing to configure. Arrange the Dock by hand while you're in a
-profile; it's saved when you switch away and restored when you come back.
-The first time you enter a profile it keeps the Dock as it is. To save the
-current Dock as a profile's immediately:
+Arrange the Dock by hand while you're in a profile; it's saved when you
+switch away and restored when you come back. Whatever is restored, apps that
+belong only to another profile are always taken out, so work apps never sit
+in the personal Dock. The first time you enter a profile, it starts from the
+current Dock with those apps removed. To save the current Dock as a profile's
+immediately:
 
 ```bash
 /Applications/Foci.app/Contents/Resources/foci capture-dock work
