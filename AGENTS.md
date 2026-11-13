@@ -22,7 +22,7 @@ engine.
   Obsidian transforms, CLI parsing, and `Switcher`, which talks to the machine
   only through the `System` and `Store` protocols.
 - `Sources/FociSystem` — the real `System` (AppKit) and `FileStore`.
-- `Sources/foci` — CLI. `Sources/FociMenu` — SwiftUI `MenuBarExtra` app.
+- `Sources/foci` — CLI. `Sources/FociMenu` — SwiftUI `MenuBarExtra` app and its Settings window.
 - `Tests/FociCoreTests` — Swift Testing. `Switcher` is tested with a fake
   `System`, so tests never touch the real Dock, apps or wallpaper.
 
@@ -30,7 +30,8 @@ engine.
 
 - Running a switch changes the real desktop. Never run `foci switch` as a test.
 - User data lives in `~/Library/Application Support/foci/`: `config.json` is
-  hers and the tool never writes it; `state.json` (current profile, Follow
+  written by the settings window (via `ProfileEditor`) or by hand, and never
+  overwritten when it exists but fails to load; `state.json` (current profile, Follow
   Focus, each profile's last wallpaper) and `docks/<profile>.plist` are the tool's.
 - A Focus-triggered switch (`--source focus`) must do nothing unless Follow
   Focus is on. Her Focus modes are scheduled, and she works late and on

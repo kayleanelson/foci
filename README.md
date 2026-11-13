@@ -13,31 +13,22 @@ One macOS login, two setups. A menu bar switch that, for the profile you pick:
 make app
 ```
 
-This builds `build/Foci.app`. Move it to `/Applications` and open it. Choose
-**Edit Config…** from its menu, which puts an example config at
-`~/Library/Application Support/foci/config.json` for you to edit:
+This builds `build/Foci.app`. Move it to `/Applications` and open it, then choose
+**Settings…** (⌘,) from its menu bar icon. Opening Foci again while it's running
+also opens Settings, which helps if Bartender has hidden the icon.
 
-```json
-{
-  "profiles": {
-    "work": {
-      "symbol": "briefcase.fill",
-      "wallpaper": "~/Pictures/Wallpapers/work.heic",
-      "obsidianVault": "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/YCRC",
-      "apps": ["com.tinyspeck.slackmacgap", "com.microsoft.Outlook"]
-    },
-    "personal": { "symbol": "house.fill", "apps": ["com.apple.MobileSMS"] }
-  }
-}
-```
+Each profile has:
 
-- **apps**: bundle IDs of apps that belong to this profile, quit when you
-  switch to another. Apps listed in both profiles, or in neither, are never
-  quit. Find an app's ID with `osascript -e 'id of app "Slack"'`.
-- **symbol**: an SF Symbol name, shown in the menu bar.
-- **obsidianVault**, **wallpaper**: optional paths. `~` is allowed. The
-  wallpaper is only a starting point: if you change the wallpaper while in a
-  profile, that's saved when you switch away and used from then on.
+- **Name** and **icon**: shown in the menu bar.
+- **Wallpaper**: the starting wallpaper. Change the wallpaper while you're in a
+  profile and that's saved when you switch away; choosing one in Settings
+  replaces it (and applies immediately to the profile you're in).
+- **Obsidian vault**: opened when you switch in.
+- **Apps**: quit when you switch to another profile. Apps listed in more than
+  one profile, or in none, are never quit.
+
+Settings saves to `~/Library/Application Support/foci/config.json`, which you
+can still edit by hand (`config.example.json` shows the format).
 
 Turn on **Launch at Login** from the menu.
 
