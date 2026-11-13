@@ -1,8 +1,7 @@
 import FociCore
 import Foundation
 
-/// The tool's own files under `~/Library/Application Support/foci/`. `config.json` there is
-/// the user's and is only ever read.
+/// Foci's files under `~/Library/Application Support/foci/`.
 @MainActor
 public struct FileStore: Store {
   public let directory: URL
@@ -23,10 +22,16 @@ public struct FileStore: Store {
   func dockURL(for profile: String) -> URL { directory.appending(path: "docks/\(profile).plist") }
 
   public func loadConfig() throws -> Config {
-    guard FileManager.default.fileExists(atPath: configURL.path) else {
+    guard hasConfig else {
       throw FileStoreError.noConfig(configURL.path)
     }
     return try Config.decode(Data(contentsOf: configURL))
+  }
+
+  public var hasConfig: Bool { FileManager.default.fileExists(atPath: configURL.path) }
+
+  public func saveConfig(_ config: Config) throws {
+    try write(config.encoded(), to: configURL)
   }
 
   public func loadState() throws -> State {
@@ -48,6 +53,16 @@ public struct FileStore: Store {
 
   public func saveDock(_ data: Data, for profile: String) throws {
     try write(data, to: dockURL(for: profile))
+  }
+
+  public func moveDock(from old: String, to new: String) throws {
+    guard FileManager.default.fileExists(atPath: dockURL(for: old).path) else { return }
+    try FileManager.default.moveItem(at: dockURL(for: old), to: dockURL(for: new))
+  }
+
+  public func removeDock(for profile: String) throws {
+    guard FileManager.default.fileExists(atPath: dockURL(for: profile).path) else { return }
+    try FileManager.default.removeItem(at: dockURL(for: profile))
   }
 
   private func write(_ data: Data, to url: URL) throws {

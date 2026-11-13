@@ -28,4 +28,24 @@ import Testing
       "\(error)".contains(store.configURL.path) && "\(error)".contains("config.example.json")
     }
   }
+
+  @Test func savedConfigLoadsBack() throws {
+    #expect(!store.hasConfig)
+    try store.saveConfig(.starter)
+    #expect(store.hasConfig)
+    #expect(try store.loadConfig() == .starter)
+  }
+
+  @Test func dockFollowsARenameAndGoesWithARemoval() throws {
+    try store.saveDock(Data("dock".utf8), for: "work")
+    try store.moveDock(from: "work", to: "Work")
+    #expect(try store.loadDock(for: "Work") == Data("dock".utf8))
+    try store.removeDock(for: "Work")
+    #expect(try store.loadDock(for: "Work") == nil)
+  }
+
+  @Test func profilesWithoutADockRenameAndRemoveQuietly() throws {
+    try store.moveDock(from: "none", to: "other")
+    try store.removeDock(for: "none")
+  }
 }
