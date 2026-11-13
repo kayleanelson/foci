@@ -2,9 +2,14 @@ import AppKit
 import FociCore
 import SwiftUI
 
+private enum SidebarItem: Hashable {
+  case general
+  case profile(String)
+}
+
 struct SettingsView: View {
   let model: MenuModel
-  @State private var selection: String?
+  @State private var selection: SidebarItem?
 
   var body: some View {
     Group {
@@ -14,7 +19,7 @@ struct SettingsView: View {
         } actions: {
           Button("Create Work and Personal") {
             model.createStarterProfiles()
-            selection = "work"
+            selection = .profile("work")
           }
         }
       } else if !model.canEditSettings {
@@ -22,26 +27,38 @@ struct SettingsView: View {
           "config.json couldn't be read", systemImage: "exclamationmark.triangle",
           description: Text(model.configError ?? ""))
       } else {
-        profiles
+        content
       }
     }
     .frame(minWidth: 640, minHeight: 460)
     .disabled(model.busy)
   }
 
-  private var profiles: some View {
+  private var selectedProfile: String? {
+    if case .profile(let name) = selection { name } else { nil }
+  }
+
+  private var content: some View {
     NavigationSplitView {
-      List(model.profileNames, id: \.self, selection: $selection) { name in
-        Label(displayName(of: name), systemImage: model.symbol(for: name))
+      List(selection: $selection) {
+        Label("General", systemImage: "gearshape").tag(SidebarItem.general)
+        Section("Profiles") {
+          ForEach(model.profileNames, id: \.self) { name in
+            Label(displayName(of: name), systemImage: model.symbol(for: name))
+              .tag(SidebarItem.profile(name))
+          }
+        }
       }
       .safeAreaInset(edge: .bottom) {
         HStack(spacing: 2) {
-          Button("Add Profile", systemImage: "plus") { selection = model.addProfile() }
-          Button("Remove Profile", systemImage: "minus") {
-            if let selection { model.removeProfile(selection) }
-            selection = model.state.current
+          Button("Add Profile", systemImage: "plus") {
+            selection = model.addProfile().map(SidebarItem.profile)
           }
-          .disabled(selection == nil)
+          Button("Remove Profile", systemImage: "minus") {
+            if let selectedProfile { model.removeProfile(selectedProfile) }
+            selection = model.state.current.map(SidebarItem.profile)
+          }
+          .disabled(selectedProfile == nil)
           Spacer()
         }
         .labelStyle(.iconOnly)
@@ -50,16 +67,58 @@ struct SettingsView: View {
       }
       .navigationSplitViewColumnWidth(min: 160, ideal: 180)
     } detail: {
-      if let selection, let profile = model.config?.profiles[selection] {
+      if selection == .general {
+        GeneralSettings(model: model)
+      } else if let name = selectedProfile, let profile = model.config?.profiles[name] {
         ProfileDetail(
-          model: model, name: selection, profile: profile, onRename: { self.selection = $0 }
+          model: model, name: name, profile: profile,
+          onRename: { selection = .profile($0) }
         )
-        .id(selection)
+        .id(name)
       } else {
         Text("Select a profile").foregroundStyle(.secondary)
       }
     }
-    .onAppear { selection = selection ?? model.state.current ?? model.profileNames.first }
+    .onAppear {
+      selection =
+        selection ?? (model.state.current ?? model.profileNames.first).map(SidebarItem.profile)
+    }
+  }
+}
+
+private struct GeneralSettings: View {
+  let model: MenuModel
+
+  private var command: String {
+    Bundle.main.bundlePath + "/Contents/Resources/foci switch <profile> --source focus"
+  }
+
+  var body: some View {
+    Form {
+      Section {
+        Toggle(
+          "Follow Focus",
+          isOn: Binding(get: { model.state.followFocus }, set: { model.setFollowFocus($0) }))
+      } footer: {
+        VStack(alignment: .leading, spacing: 6) {
+          Text(
+            "When on, turning on a Focus switches profile. Off by default, so a scheduled "
+              + "Focus never switches you in the middle of late work or on a holiday.")
+          Text(
+            "Each Focus needs a Shortcuts automation (When Turning On, Run Immediately) with a "
+              + "Run Shell Script action:")
+          Text(command).font(.caption.monospaced()).textSelection(.enabled)
+        }
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
+      }
+
+      if let error = model.settingsError {
+        Section { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
+      }
+    }
+    .formStyle(.grouped)
   }
 }
 

@@ -80,9 +80,6 @@ struct MenuContent: View {
 
     Divider()
     Toggle(
-      "Follow Focus",
-      isOn: Binding(get: { model.state.followFocus }, set: { model.setFollowFocus($0) }))
-    Toggle(
       "Launch at Login",
       isOn: Binding(get: { model.launchesAtLogin }, set: { model.setLaunchesAtLogin($0) }))
     Button("Settings…") {

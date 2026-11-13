@@ -55,9 +55,9 @@ work or on a holiday. To have Focus drive switching:
 2. Action: **Run Shell Script**:
    `/Applications/Foci.app/Contents/Resources/foci switch work --source focus`
 3. Do the same for Personal.
-4. Tick **Follow Focus** in the Foci menu.
+4. Turn on **Follow Focus** in Settings › General.
 
-Unticking Follow Focus turns this off without removing the automations; a
+Turning Follow Focus off disables this without removing the automations; a
 `--source focus` request does nothing while it's off.
 
 ## CLI

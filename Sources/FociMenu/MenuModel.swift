@@ -82,7 +82,7 @@ final class MenuModel {
 
   func setFollowFocus(_ on: Bool) {
     state.followFocus = on
-    record { try store.saveState(state) }
+    noteSettingsError { try store.saveState(state) }
   }
 
   var launchesAtLogin: Bool { SMAppService.mainApp.status == .enabled }
