@@ -1,5 +1,23 @@
 {
-  "ground": { "light": "#4E5647", "dark": "#262A22" },
-  "front": { "light": "#7EAC55", "dark": "#7EAC55" },
-  "back": { "light": "#EFE8DA", "dark": "#CFC8B8" }
+  "palette": {
+    "olive": "#4E5647",
+    "green": "#7EAC55",
+    "tan": "#AB8254",
+    "rose": "#AB5462",
+    "blue": "#5491AB"
+  },
+  "roles": {
+    "ground": {
+      "light": { "from": "olive" },
+      "dark": { "from": "olive", "lightness": 0.28 }
+    },
+    "front": {
+      "light": { "from": "tan", "lightness": 0.93, "chroma": 0.03 },
+      "dark": { "from": "tan", "lightness": 0.84, "chroma": 0.03 }
+    },
+    "back": {
+      "light": { "from": "green" },
+      "dark": { "from": "green" }
+    }
+  }
 }

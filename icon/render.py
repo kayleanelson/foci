@@ -15,25 +15,41 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from colour import derive  # noqa: E402
+
 MODES = ["light", "dark"]
-PALETTE = json.loads((HERE / "palette.json").read_text())
+_PALETTE = json.loads((HERE / "palette.json").read_text())
+
+
+def role_colour(role, mode):
+    spec = dict(_PALETTE["roles"][role][mode])
+    return derive(_PALETTE["palette"][spec.pop("from")], **spec)
+
 
 # A 1000-unit square: keep every coordinate exact in binary (multiples of 0.125) so the
 # output is identical on every run.
 R = 260
-FRONT = (390, 560)
-BACK = (610, 440)
+CENTRE = 500
+# The discs sit one radius apart, so each one's edge passes through the other's centre,
+# along a 30-degree diagonal. Near misses of either (0.96 R at 28.6 degrees, once) read as
+# accidental.
+ANGLE = math.radians(30)
 GAP = 40
-# Wider in the menu bar, where the template's single colour leaves the gap to separate the
-# discs: 64 units is 1.6 pt at 16 pt tall.
-GLYPH_GAP = 64
-# The discs' bounding box, so the glyph has no margin of its own.
-GLYPH_BOX = (130, 180, 740, 640)
-GLYPH_HEIGHT = 16
+# The menu bar glyph: a template sized in whole points so its frame lands on the pixel grid
+# at 1x, with a 2 pt gap, wider than the app icon's because a single colour leaves only the
+# gap to separate the discs.
+GLYPH_PT = (18, 16)
+GLYPH_GAP_PT = 2
 
 
 def snap(v):
     return round(v * 8) / 8
+
+
+_DX, _DY = R / 2 * math.cos(ANGLE), R / 2 * math.sin(ANGLE)
+FRONT = (snap(CENTRE - _DX), snap(CENTRE + _DY))
+BACK = (snap(CENTRE + _DX), snap(CENTRE - _DY))
 
 
 def circle(cx, cy, r):
@@ -62,19 +78,27 @@ def svg(fill, path):
 
 
 def front(mode):
-    return svg(PALETTE["front"][mode], circle(*FRONT, R))
+    return svg(role_colour("front", mode), circle(*FRONT, R))
 
 
 def back(mode):
-    return svg(PALETTE["back"][mode], crescent(BACK, FRONT, R, R + GAP))
+    return svg(role_colour("back", mode), crescent(BACK, FRONT, R, R + GAP))
 
 
 def glyph():
-    x, y, w, h = GLYPH_BOX
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w * GLYPH_HEIGHT / h}"'
-            f' height="{GLYPH_HEIGHT}" viewBox="{x} {y} {w} {h}">'
+    """Framed on the discs' bounding box, widened to the glyph's aspect, so it carries no
+    margin of its own."""
+    left, right = FRONT[0] - R, BACK[0] + R
+    top, bottom = BACK[1] - R, FRONT[1] + R
+    w_pt, h_pt = GLYPH_PT
+    unit = max((right - left) / w_pt, (bottom - top) / h_pt)
+    x, y = snap((left + right - w_pt * unit) / 2), snap((top + bottom - h_pt * unit) / 2)
+    w, h = snap(w_pt * unit), snap(h_pt * unit)
+    gap = snap(GLYPH_GAP_PT * unit)
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_pt}" height="{h_pt}"'
+            f' viewBox="{x} {y} {w} {h}">'
             f'<path fill="#000" d="{circle(*FRONT, R)}"/>'
-            f'<path fill="#000" fill-opacity="0.5" d="{crescent(BACK, FRONT, R, R + GLYPH_GAP)}"/>'
+            f'<path fill="#000" fill-opacity="0.5" d="{crescent(BACK, FRONT, R, R + gap)}"/>'
             '</svg>\n')
 
 
@@ -100,7 +124,7 @@ def group(layers):
 
 DRAWINGS = {"front": front, "back": back}
 ICON = {
-    "fill-specializations": by_appearance(lambda mode: solid(PALETTE["ground"][mode])),
+    "fill-specializations": by_appearance(lambda mode: solid(role_colour("ground", mode))),
     "groups": [group(["front"]), group(["back"])],
     "supported-platforms": {"squares": ["macOS"]},
 }
