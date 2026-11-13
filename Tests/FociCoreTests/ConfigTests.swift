@@ -46,3 +46,17 @@ import Testing
     #expect(expandingTilde("/a/~/b", home: "/Users/k") == "/a/~/b")
   }
 }
+
+@Suite struct StateTests {
+  @Test(arguments: ["{}", #"{"current": "work", "followFocus": true}"#])
+  func stateFromBeforeAFieldExistedStillLoads(json: String) throws {
+    let state = try JSONDecoder().decode(State.self, from: Data(json.utf8))
+    #expect(state.wallpapers.isEmpty)
+  }
+
+  @Test func stateRoundTrips() throws {
+    let state = State(current: "work", followFocus: true, wallpapers: ["work": "/a.png"])
+    let data = try JSONEncoder().encode(state)
+    #expect(try JSONDecoder().decode(State.self, from: data) == state)
+  }
+}

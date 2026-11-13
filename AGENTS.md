@@ -28,7 +28,7 @@ engine.
 - Running a switch changes the real desktop. Never run `foci switch` as a test.
 - User data lives in `~/Library/Application Support/foci/`: `config.json` is
   hers and the tool never writes it; `state.json` (current profile, Follow
-  Focus) and `docks/<profile>.plist` are the tool's.
+  Focus, each profile's last wallpaper) and `docks/<profile>.plist` are the tool's.
 - A Focus-triggered switch (`--source focus`) must do nothing unless Follow
   Focus is on. Her Focus modes are scheduled, and she works late and on
   holidays.

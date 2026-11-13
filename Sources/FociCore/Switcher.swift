@@ -7,6 +7,7 @@ public protocol System: Sendable {
   func displayName(of bundleID: String) -> String
   /// Asks the app to quit and waits; false if it is still running at the deadline.
   func quit(_ bundleID: String) async -> Bool
+  func currentWallpaper() throws -> String?
   func setWallpaper(_ path: String) throws
   func readDockPrefs() throws -> [String: Any]
   func writeDockPrefs(_ prefs: [String: Any]) throws
@@ -94,7 +95,12 @@ public struct Switcher {
     if let current = state.current {
       await attempt("Saving the \(current) Dock") { try saveDock(as: current) }
     }
-    if let wallpaper = incoming.wallpaper {
+    if let current = state.current {
+      await attempt("Saving the \(current) wallpaper") {
+        state.wallpapers[current] = try system.currentWallpaper()
+      }
+    }
+    if let wallpaper = state.wallpapers[target] ?? incoming.wallpaper {
       await attempt("Wallpaper") { try system.setWallpaper(expandingTilde(wallpaper, home: home)) }
     }
     await attempt("Dock") { try restoreDock(for: target, removing: appsToQuit) }

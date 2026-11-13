@@ -50,6 +50,12 @@ public struct MacSystem: System {
     return true
   }
 
+  public func currentWallpaper() throws -> String? {
+    (NSScreen.main ?? NSScreen.screens.first).flatMap {
+      NSWorkspace.shared.desktopImageURL(for: $0)?.path
+    }
+  }
+
   /// macOS only exposes the current Space of each display; other Spaces keep their wallpaper.
   public func setWallpaper(_ path: String) throws {
     guard FileManager.default.fileExists(atPath: path) else {

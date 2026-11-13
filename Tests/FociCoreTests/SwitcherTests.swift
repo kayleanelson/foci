@@ -228,6 +228,59 @@ import Testing
     #expect(log.firstIndex(of: "writeObsidian")! < slackDone)
   }
 
+  @Test func leavingAProfileSavesItsWallpaper() async throws {
+    let system = FakeSystem()
+    system.wallpaper = "/Users/k/picked-by-hand.png"
+    let store = MemoryStore(state: State(current: "work"))
+    _ = try await run(SwitchRequest(target: "personal"), system: system, store: store)
+    #expect(store.state.wallpapers["work"] == "/Users/k/picked-by-hand.png")
+  }
+
+  @Test func savedWallpaperWinsOverTheConfigs() async throws {
+    let system = FakeSystem()
+    let store = MemoryStore(
+      state: State(current: "work", wallpapers: ["personal": "/Users/k/saved.png"]))
+    _ = try await run(SwitchRequest(target: "personal"), system: system, store: store)
+    #expect(system.wallpaper == "/Users/k/saved.png")
+  }
+
+  @Test func returningRestoresTheWallpaperAProfileWasLeftWith() async throws {
+    let system = FakeSystem()
+    system.wallpaper = "/Users/k/work-by-hand.png"
+    let store = MemoryStore(state: State(current: "work"))
+    _ = try await run(SwitchRequest(target: "personal"), system: system, store: store)
+    #expect(system.wallpaper == "/Users/k/home.heic")
+    _ = try await run(SwitchRequest(target: "work"), system: system, store: store)
+    #expect(system.wallpaper == "/Users/k/work-by-hand.png")
+  }
+
+  @Test func configWallpaperIsUsedWhenNoneIsSaved() async throws {
+    let system = FakeSystem()
+    _ = try await run(SwitchRequest(target: "work"), system: system, store: MemoryStore())
+    #expect(system.wallpaper == "/Users/k/work.heic")
+  }
+
+  @Test func wallpaperIsSavedBeforeTheNewOneIsSet() async throws {
+    let system = FakeSystem()
+    let store = MemoryStore(state: State(current: "work"))
+    _ = try await run(SwitchRequest(target: "personal"), system: system, store: store)
+    #expect(store.state.wallpapers["work"] == "/Users/k/current.png")
+    #expect(
+      system.log.firstIndex(of: "readWallpaper")! < system.log.firstIndex {
+        $0.hasPrefix("wallpaper")
+      }!)
+  }
+
+  @Test func unreadableWallpaperDoesNotStopTheSwitch() async throws {
+    let system = FakeSystem()
+    system.failing = ["readWallpaper"]
+    let store = MemoryStore(state: State(current: "work"))
+    let report = try await run(SwitchRequest(target: "personal"), system: system, store: store)
+    #expect(report.problems == ["Saving the work wallpaper: boom"])
+    #expect(system.wallpaper == "/Users/k/home.heic")
+    #expect(store.state.current == "personal")
+  }
+
   @Test func unknownTargetChangesNothing() async throws {
     let system = FakeSystem()
     let store = MemoryStore(state: State(current: "work"))

@@ -38,7 +38,17 @@ final class FakeSystem: System {
     return true
   }
 
-  func setWallpaper(_ path: String) throws { try record("wallpaper \(path)") }
+  var wallpaper: String? = "/Users/k/current.png"
+
+  func currentWallpaper() throws -> String? {
+    try record("readWallpaper")
+    return wallpaper
+  }
+
+  func setWallpaper(_ path: String) throws {
+    try record("wallpaper \(path)")
+    wallpaper = path
+  }
 
   func readDockPrefs() throws -> [String: Any] {
     try record("readDock")

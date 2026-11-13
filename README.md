@@ -35,7 +35,9 @@ This builds `build/Foci.app`. Move it to `/Applications` and open it. Choose
   switch to another. Apps listed in both profiles, or in neither, are never
   quit. Find an app's ID with `osascript -e 'id of app "Slack"'`.
 - **symbol**: an SF Symbol name, shown in the menu bar.
-- **obsidianVault**, **wallpaper**: optional paths. `~` is allowed.
+- **obsidianVault**, **wallpaper**: optional paths. `~` is allowed. The
+  wallpaper is only a starting point: if you change the wallpaper while in a
+  profile, that's saved when you switch away and used from then on.
 
 Turn on **Launch at Login** from the menu.
 
