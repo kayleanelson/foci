@@ -11,6 +11,9 @@ engine.
 - `make format` — apply swift-format. Commit reformatting on its own.
 - `make app` — build `build/Foci.app` (menu bar app, CLI inside at
   `Contents/Resources/foci`).
+- `make icon` — regenerate `icon/AppIcon.icon` from `icon/render.py` and
+  `icon/palette.json`. Never edit the `.icon` in Icon Composer; `make check`
+  fails if it drifts from the script.
 - `swift run foci status` / `swift run foci switch work` — exercise the CLI.
 
 ## Layout

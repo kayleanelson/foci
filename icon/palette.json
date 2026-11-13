@@ -1,0 +1,6 @@
+{
+  "ground": { "light": "#4E5647", "dark": "#262A22" },
+  "orbit": { "light": "#EFE8DA", "dark": "#AB8254" },
+  "lit": { "light": "#7EAC55", "dark": "#7EAC55" },
+  "unlit": { "light": "#AB8254", "dark": "#4E5647" }
+}
