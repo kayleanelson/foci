@@ -16,7 +16,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from colour import derive  # noqa: E402
+from colour import contrast, derive  # noqa: E402
 
 MODES = ["light", "dark"]
 _PALETTE = json.loads((HERE / "palette.json").read_text())
@@ -29,8 +29,12 @@ def role_colour(role, mode):
 
 # A 1000-unit square: keep every coordinate exact in binary (multiples of 0.125) so the
 # output is identical on every run.
-R = 260
+# The largest disc radius that keeps the balanced pair this far from every canvas edge.
+MARGIN = 100
 CENTRE = 500
+# Optical centre: a mark centred exactly looks low, so its visual weight sits 2% of the
+# canvas above the middle.
+OPTICAL_CENTRE = (CENTRE, CENTRE - 20)
 # The discs sit one radius apart, so each one's edge passes through the other's centre,
 # along a 30-degree diagonal. Near misses of either (0.96 R at 28.6 degrees, once) read as
 # accidental.
@@ -47,9 +51,56 @@ def snap(v):
     return round(v * 8) / 8
 
 
-_DX, _DY = R / 2 * math.cos(ANGLE), R / 2 * math.sin(ANGLE)
-FRONT = (snap(CENTRE - _DX), snap(CENTRE + _DY))
-BACK = (snap(CENTRE + _DX), snap(CENTRE - _DY))
+def weight(role):
+    """How hard a shape pulls the eye: its contrast with the ground, in the default
+    appearance."""
+    return contrast(role_colour(role, "light"), role_colour("ground", "light"))
+
+
+def visual_centre(front, back, gap, r, step=2):
+    """The centroid of the two shapes, each point weighted by its shape's pull. The light
+    front disc outweighs the green crescent, so centring the bounding box (or the plain
+    area) leaves the icon heavy toward the front."""
+    weights = {"front": weight("front"), "back": weight("back")}
+    total = sx = sy = 0.0
+    left, top = min(front[0], back[0]) - r, min(front[1], back[1]) - r
+    for i in range(int(2 * r + abs(front[0] - back[0])) // step + 1):
+        for j in range(int(2 * r + abs(front[1] - back[1])) // step + 1):
+            x, y = left + i * step, top + j * step
+            if math.dist((x, y), front) <= r:
+                w = weights["front"]
+            elif math.dist((x, y), back) <= r and math.dist((x, y), front) > r + gap:
+                w = weights["back"]
+            else:
+                continue
+            total += w
+            sx += w * x
+            sy += w * y
+    return sx / total, sy / total
+
+
+def place(r):
+    dx, dy = r / 2 * math.cos(ANGLE), r / 2 * math.sin(ANGLE)
+    front, back = (-dx, dy), (dx, -dy)
+    cx, cy = visual_centre(front, back, GAP, r)
+    ox, oy = OPTICAL_CENTRE[0] - cx, OPTICAL_CENTRE[1] - cy
+    return (snap(front[0] + ox), snap(front[1] + oy)), (snap(back[0] + ox), snap(back[1] + oy))
+
+
+def reach(front, back, r):
+    """How far the pair extends from the canvas centre, toward its nearest edge."""
+    return max(abs(c - CENTRE) + r for c in (*front, *back))
+
+
+def fit():
+    """Balancing shifts the pair off-centre, so the radius is solved for afterwards: the
+    shapes scale with r, so one rescale lands within a snap of the margin."""
+    r = 250
+    r = math.floor(r * (CENTRE - MARGIN) / reach(*place(r), r) * 8) / 8
+    return r, *place(r)
+
+
+R, FRONT, BACK = fit()
 
 
 def circle(cx, cy, r):
