@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "work": {
+      "symbol": "briefcase.fill",
+      "wallpaper": "~/Pictures/Wallpapers/work.heic",
+      "obsidianVault": "~/Dropbox/Work Vault",
+      "apps": ["com.tinyspeck.slackmacgap", "com.microsoft.Outlook"]
+    },
+    "personal": {
+      "symbol": "house.fill",
+      "wallpaper": "~/Pictures/Wallpapers/personal.heic",
+      "obsidianVault": "~/Dropbox/Personal Vault",
+      "apps": ["com.apple.MobileSMS"]
+    }
+  }
+}
