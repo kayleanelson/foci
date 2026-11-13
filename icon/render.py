@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Writes Foci's app icon as an Icon Composer document: an ellipse with one lit focus.
+"""Writes Foci's app icon as an Icon Composer document: two discs, the current profile in front.
 
 Usage: render.py [out.icon], defaulting to icon/AppIcon.icon. Never edit the document
 in Icon Composer; the next run overwrites it.
 """
 
 import json
+import math
 import shutil
 import sys
 from pathlib import Path
@@ -17,39 +18,47 @@ PALETTE = json.loads((HERE / "palette.json").read_text())
 
 # A 1000-unit square: keep every coordinate exact in binary (multiples of 0.125) so the
 # output is identical on every run.
-CX, CY = 500, 500
-RX, RY, RING = 400, 290, 52
-FOCUS = 215
-LIT_R = 80
-UNLIT_R, UNLIT_HOLE = 68, 36
+R = 260
+FRONT = (390, 560)
+BACK = (610, 440)
+GAP = 40
 
 
-def ellipse(cx, cy, rx, ry):
-    return (f"M{cx - rx} {cy} A{rx} {ry} 0 1 0 {cx + rx} {cy}"
-            f" A{rx} {ry} 0 1 0 {cx - rx} {cy} Z")
+def snap(v):
+    return round(v * 8) / 8
 
 
 def circle(cx, cy, r):
-    return ellipse(cx, cy, r, r)
+    return (f"M{cx - r} {cy} A{r} {r} 0 1 0 {cx + r} {cy}"
+            f" A{r} {r} 0 1 0 {cx - r} {cy} Z")
 
 
-def svg(fill, *paths):
+def crescent(disc, cutter, r, cut_r):
+    """The disc minus the cutter. Cut out rather than drawn under, so the gap between the
+    discs stays crisp under Liquid Glass and shows the ground in every appearance."""
+    (ax, ay), (bx, by) = disc, cutter
+    d = math.dist(disc, cutter)
+    along = (d * d + r * r - cut_r * cut_r) / (2 * d)
+    half = math.sqrt(r * r - along * along)
+    ux, uy = (bx - ax) / d, (by - ay) / d
+    mx, my = ax + along * ux, ay + along * uy
+    p1 = (snap(mx - half * uy), snap(my + half * ux))
+    p2 = (snap(mx + half * uy), snap(my - half * ux))
+    return (f"M{p1[0]} {p1[1]} A{r} {r} 0 1 1 {p2[0]} {p2[1]}"
+            f" A{cut_r} {cut_r} 0 0 0 {p1[0]} {p1[1]} Z")
+
+
+def svg(fill, path):
     return ('<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1000 1000">'
-            f'<path fill-rule="evenodd" fill="{fill}" d="{" ".join(paths)}"/></svg>\n')
+            f'<path fill="{fill}" d="{path}"/></svg>\n')
 
 
-def orbit(mode):
-    return svg(PALETTE["orbit"][mode],
-               ellipse(CX, CY, RX, RY), ellipse(CX, CY, RX - RING, RY - RING))
+def front(mode):
+    return svg(PALETTE["front"][mode], circle(*FRONT, R))
 
 
-def lit(mode):
-    return svg(PALETTE["lit"][mode], circle(CX - FOCUS, CY, LIT_R))
-
-
-def unlit(mode):
-    return svg(PALETTE["unlit"][mode],
-               circle(CX + FOCUS, CY, UNLIT_R), circle(CX + FOCUS, CY, UNLIT_HOLE))
+def back(mode):
+    return svg(PALETTE["back"][mode], crescent(BACK, FRONT, R, R + GAP))
 
 
 def solid(hex_colour):
@@ -72,10 +81,10 @@ def group(layers):
     }
 
 
-DRAWINGS = {"orbit": orbit, "lit": lit, "unlit": unlit}
+DRAWINGS = {"front": front, "back": back}
 ICON = {
     "fill-specializations": by_appearance(lambda mode: solid(PALETTE["ground"][mode])),
-    "groups": [group(["lit", "unlit"]), group(["orbit"])],
+    "groups": [group(["front"]), group(["back"])],
     "supported-platforms": {"squares": ["macOS"]},
 }
 

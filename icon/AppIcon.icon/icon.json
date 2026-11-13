@@ -16,27 +16,14 @@
     {
       "layers": [
         {
-          "name": "lit",
+          "name": "front",
           "image-name-specializations": [
             {
-              "value": "lit-light.svg"
+              "value": "front-light.svg"
             },
             {
               "appearance": "dark",
-              "value": "lit-dark.svg"
-            }
-          ],
-          "glass": true
-        },
-        {
-          "name": "unlit",
-          "image-name-specializations": [
-            {
-              "value": "unlit-light.svg"
-            },
-            {
-              "appearance": "dark",
-              "value": "unlit-dark.svg"
+              "value": "front-dark.svg"
             }
           ],
           "glass": true
@@ -55,14 +42,14 @@
     {
       "layers": [
         {
-          "name": "orbit",
+          "name": "back",
           "image-name-specializations": [
             {
-              "value": "orbit-light.svg"
+              "value": "back-light.svg"
             },
             {
               "appearance": "dark",
-              "value": "orbit-dark.svg"
+              "value": "back-dark.svg"
             }
           ],
           "glass": true
