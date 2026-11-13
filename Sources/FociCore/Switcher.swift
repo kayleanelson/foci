@@ -7,7 +7,6 @@ public protocol System {
   func displayName(of bundleID: String) -> String
   /// Asks the app to quit and waits; false if it is still running at the deadline.
   func quit(_ bundleID: String) async -> Bool
-  func launch(_ bundleID: String) async throws
   func setWallpaper(_ path: String) throws
   func readDockPrefs() throws -> [String: Any]
   func writeDockPrefs(_ prefs: [String: Any]) throws
@@ -84,7 +83,7 @@ public struct Switcher {
     }
 
     let outgoing = state.current.flatMap { config.profiles[$0] }
-    let plan = try config.appPlan(switchingTo: target)
+    let appsToQuit = try config.appsToQuit(switchingTo: target)
     let obsidian = ObsidianVaults.bundleID
     let vault = incoming.obsidianVault.map { normalizedPath($0, home: home) }
     let changesVault =
@@ -98,7 +97,7 @@ public struct Switcher {
       }
     }
 
-    let toQuit = (plan.quit + (changesVault ? [obsidian] : [])).uniqued()
+    let toQuit = (appsToQuit + (changesVault ? [obsidian] : [])).uniqued()
     var quitFailed: Set<String> = []
     for app in toQuit where system.isRunning(app) {
       if await !system.quit(app) {
@@ -122,14 +121,10 @@ public struct Switcher {
       await attempt("Obsidian") {
         try system.writeObsidianConfig(
           ObsidianVaults.openingOnly(vaultAt: vault, in: try system.readObsidianConfig()))
-        if obsidianWasRunning && !plan.quit.contains(obsidian) {
+        if obsidianWasRunning && !appsToQuit.contains(obsidian) {
           try system.open(ObsidianVaults.openURL(forVaultAt: vault))
         }
       }
-    }
-
-    for app in plan.launch {
-      await attempt("Opening \(system.displayName(of: app))") { try await system.launch(app) }
     }
 
     state.current = target

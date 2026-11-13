@@ -2,7 +2,7 @@
 
 One macOS login, two setups. A menu bar switch that, for the profile you pick:
 
-- quits the other profile's apps and opens this one's
+- quits the other profile's apps (it never opens any)
 - sets this profile's wallpaper
 - restores this profile's Dock
 - reopens Obsidian on this profile's vault
@@ -31,7 +31,8 @@ This builds `build/Foci.app`. Move it to `/Applications` and open it. Choose
 }
 ```
 
-- **apps**: bundle IDs. Apps listed in both profiles, or in neither, are never
+- **apps**: bundle IDs of apps that belong to this profile, quit when you
+  switch to another. Apps listed in both profiles, or in neither, are never
   quit. Find an app's ID with `osascript -e 'id of app "Slack"'`.
 - **symbol**: an SF Symbol name, shown in the menu bar.
 - **obsidianVault**, **wallpaper**: optional paths. `~` is allowed.
@@ -80,5 +81,5 @@ foci follow-focus on|off
 - Apps are asked to quit, never force-quit. One with unsaved work shows its
   prompt; if it hasn't quit after 20 seconds the switch reports it and
   continues.
-- If Obsidian wasn't running, its vault is set for next launch but Obsidian
-  isn't opened. To have it opened, add `md.obsidian` to every profile's apps.
+- Obsidian is reopened only if it was already running. Otherwise the vault is
+  set and Obsidian opens on it the next time you start it.

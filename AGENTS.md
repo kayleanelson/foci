@@ -1,8 +1,9 @@
 # foci
 
 Switches one macOS login between profiles (work, personal): quits the other
-profile's apps, sets wallpaper, swaps the Dock, switches the Obsidian vault,
-launches this profile's apps. Menu bar app plus a CLI over one engine.
+profile's apps, sets wallpaper, swaps the Dock, switches the Obsidian vault.
+It never opens apps: she opens what she needs. Menu bar app plus a CLI over one
+engine.
 
 ## Commands
 

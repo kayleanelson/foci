@@ -55,7 +55,7 @@ do {
   fail(Command.usage, code: 64)
 }
 
-// A spinning run loop keeps AppKit's app-launch callbacks and workspace state current.
+// A spinning run loop keeps AppKit's workspace state current.
 Task { @MainActor in
   do {
     exit(try await execute(command))

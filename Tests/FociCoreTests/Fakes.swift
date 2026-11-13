@@ -35,11 +35,6 @@ final class FakeSystem: System {
     return true
   }
 
-  func launch(_ bundleID: String) async throws {
-    try record("launch \(bundleID)")
-    running.insert(bundleID)
-  }
-
   func setWallpaper(_ path: String) throws { try record("wallpaper \(path)") }
 
   func readDockPrefs() throws -> [String: Any] {
@@ -62,7 +57,10 @@ final class FakeSystem: System {
     obsidianConfig = data
   }
 
-  func open(_ url: URL) throws { try record("open \(url.absoluteString)") }
+  func open(_ url: URL) throws {
+    try record("open \(url.absoluteString)")
+    if url.scheme == "obsidian" { running.insert(ObsidianVaults.bundleID) }
+  }
 
   /// Calls that change something, in order: the part of the log a switch is judged by.
   var effects: [String] { log.filter { !$0.hasPrefix("read") } }

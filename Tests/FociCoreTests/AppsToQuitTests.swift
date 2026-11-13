@@ -2,7 +2,7 @@ import Testing
 
 @testable import FociCore
 
-@Suite struct AppPlanTests {
+@Suite struct AppsToQuitTests {
   static let configs: [Config] = [
     Config(profiles: [
       "work": Profile(apps: ["slack", "outlook", "shared"]),
@@ -19,31 +19,28 @@ import Testing
   @Test(arguments: configs)
   func appInTheTargetProfileIsNeverQuit(config: Config) throws {
     for target in config.profileNames {
-      let plan = try config.appPlan(switchingTo: target)
-      #expect(Set(plan.quit).isDisjoint(with: config.profiles[target]!.apps))
+      let quit = try config.appsToQuit(switchingTo: target)
+      #expect(Set(quit).isDisjoint(with: config.profiles[target]!.apps))
     }
   }
 
   @Test(arguments: configs)
-  func plansOnlyNameAppsFromTheConfig(config: Config) throws {
+  func onlyAppsFromTheConfigAreQuit(config: Config) throws {
     let known = Set(config.profiles.values.flatMap(\.apps))
     for target in config.profileNames {
-      let plan = try config.appPlan(switchingTo: target)
-      #expect(Set(plan.quit + plan.launch).isSubset(of: known))
+      #expect(Set(try config.appsToQuit(switchingTo: target)).isSubset(of: known))
     }
   }
 
   @Test(arguments: configs)
-  func plansHaveNoDuplicates(config: Config) throws {
+  func noAppIsListedTwice(config: Config) throws {
     for target in config.profileNames {
-      let plan = try config.appPlan(switchingTo: target)
-      #expect(plan.quit.count == Set(plan.quit).count)
-      #expect(plan.launch.count == Set(plan.launch).count)
+      let quit = try config.appsToQuit(switchingTo: target)
+      #expect(quit.count == Set(quit).count)
     }
   }
 
-  @Test func quitsOtherProfilesAppsAndLaunchesOwn() throws {
-    let plan = try Self.configs[0].appPlan(switchingTo: "personal")
-    #expect(plan == AppPlan(quit: ["slack", "outlook"], launch: ["messages", "shared"]))
+  @Test func quitsOnlyTheOtherProfilesOwnApps() throws {
+    #expect(try Self.configs[0].appsToQuit(switchingTo: "personal") == ["slack", "outlook"])
   }
 }

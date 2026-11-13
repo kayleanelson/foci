@@ -37,7 +37,6 @@ import Testing
       system.effects == [
         "quit slack", "quit md.obsidian", "wallpaper /Users/k/home.heic", "writeDock",
         "writeObsidian", "open obsidian://open?path=/Users/k/Home",
-        "launch messages", "launch shared",
       ])
     #expect(store.state.current == "personal")
     #expect(try openVaults(system.obsidianConfig) == ["p"])
@@ -97,15 +96,14 @@ import Testing
 
   @Test func oneFailingStepDoesNotStopTheRest() async throws {
     let system = FakeSystem(running: ["slack"])
-    system.failing = ["wallpaper", "writeDock", "launch messages"]
+    system.failing = ["wallpaper", "writeDock", "writeObsidian"]
     let store = MemoryStore(state: State(current: "work"))
     store.docks["personal"] = try DockLayout.encode(["persistent-apps": []])
 
     let report = try await run(SwitchRequest(target: "personal"), system: system, store: store)
 
     #expect(report.outcome == .switched)
-    #expect(report.problems == ["Wallpaper: boom", "Dock: boom", "Opening messages: boom"])
-    #expect(system.effects.contains("launch shared"))
+    #expect(report.problems == ["Wallpaper: boom", "Dock: boom", "Obsidian: boom"])
     #expect(store.state.current == "personal")
   }
 
@@ -148,6 +146,21 @@ import Testing
       SwitchRequest(target: "personal"), system: system,
       store: MemoryStore(state: State(current: "work")))
     #expect(!system.log.contains { $0.hasPrefix("quit") })
+  }
+
+  nonisolated static let runningSets: [Set<String>] = [
+    [], ["slack"], ["messages", "shared"], [ObsidianVaults.bundleID],
+    ["slack", "messages", "shared", "other", ObsidianVaults.bundleID],
+  ]
+
+  @Test(arguments: runningSets)
+  func aSwitchNeverStartsAnAppThatWasNotRunning(running: Set<String>) async throws {
+    for (from, to) in [("work", "personal"), ("personal", "work"), (nil, "work")] {
+      let system = FakeSystem(running: running)
+      _ = try await run(
+        SwitchRequest(target: to), system: system, store: MemoryStore(state: State(current: from)))
+      #expect(system.running.isSubset(of: running))
+    }
   }
 
   @Test func unknownTargetChangesNothing() async throws {

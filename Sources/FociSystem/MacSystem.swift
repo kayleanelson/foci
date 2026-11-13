@@ -50,19 +50,6 @@ public struct MacSystem: System {
     return true
   }
 
-  public func launch(_ bundleID: String) async throws {
-    guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) else {
-      throw MacSystemError.appNotInstalled(bundleID)
-    }
-    let configuration = NSWorkspace.OpenConfiguration()
-    configuration.activates = false
-    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-      NSWorkspace.shared.openApplication(at: url, configuration: configuration) { _, error in
-        if let error { continuation.resume(throwing: error) } else { continuation.resume() }
-      }
-    }
-  }
-
   /// macOS only exposes the current Space of each display; other Spaces keep their wallpaper.
   public func setWallpaper(_ path: String) throws {
     guard FileManager.default.fileExists(atPath: path) else {
@@ -102,14 +89,12 @@ public struct MacSystem: System {
 }
 
 public enum MacSystemError: Error, CustomStringConvertible {
-  case appNotInstalled(String)
   case fileNotFound(String)
   case dockPrefsUnreadable
   case couldNotOpen(URL)
 
   public var description: String {
     switch self {
-    case .appNotInstalled(let id): "no app installed with bundle ID \(id)"
     case .fileNotFound(let path): "\(path) doesn't exist"
     case .dockPrefsUnreadable: "couldn't read com.apple.dock preferences"
     case .couldNotOpen(let url): "couldn't open \(url.absoluteString)"
