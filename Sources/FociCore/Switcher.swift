@@ -100,7 +100,7 @@ public struct Switcher {
         state.wallpapers[current] = try system.currentWallpaper()
       }
     }
-    if let wallpaper = state.wallpapers[target] ?? incoming.wallpaper {
+    if let wallpaper = state.wallpaper(for: target, in: config) {
       await attempt("Wallpaper") { try system.setWallpaper(expandingTilde(wallpaper, home: home)) }
     }
     await attempt("Dock") { try restoreDock(for: target, removing: appsToQuit) }

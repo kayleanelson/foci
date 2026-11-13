@@ -38,6 +38,16 @@ public struct Config: Codable, Equatable, Sendable {
     return config
   }
 
+  public static let starter = Config(profiles: [
+    "work": Profile(symbol: "briefcase.fill"), "personal": Profile(symbol: "house.fill"),
+  ])
+
+  public func encoded() throws -> Data {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+    return try encoder.encode(self)
+  }
+
   public var profileNames: [String] { profiles.keys.sorted() }
 
   public func profile(_ name: String) throws -> Profile {
