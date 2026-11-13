@@ -15,14 +15,30 @@ final class MenuModel {
   private(set) var state = State()
   private(set) var problems: [String] = []
   private(set) var busy = false
+  @ObservationIgnored private var configWatcher: DispatchSourceFileSystemObject?
 
   init() {
     reload()
+    watchConfigDirectory()
     DistributedNotificationCenter.default().addObserver(
       forName: FileStore.stateChanged, object: nil, queue: .main
     ) { [weak self] _ in
       MainActor.assumeIsolated { self?.reload() }
     }
+  }
+
+  /// Watches the directory, not the file: editors save by replacing the file, which would
+  /// orphan a watch on the old one.
+  private func watchConfigDirectory() {
+    try? FileManager.default.createDirectory(at: store.directory, withIntermediateDirectories: true)
+    let descriptor = open(store.directory.path, O_EVTONLY)
+    guard descriptor >= 0 else { return }
+    let source = DispatchSource.makeFileSystemObjectSource(
+      fileDescriptor: descriptor, eventMask: .write, queue: .main)
+    source.setEventHandler { [weak self] in MainActor.assumeIsolated { self?.reload() } }
+    source.setCancelHandler { close(descriptor) }
+    source.resume()
+    configWatcher = source
   }
 
   func reload() {
