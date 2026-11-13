@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Builds build/Foci.app: the menu bar app, with the CLI and example config inside it so a
-# Shortcuts automation has a stable path to call.
+# Builds build/Foci.app: the menu bar app, with the CLI inside it so a Shortcuts automation
+# has a stable path to call.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -14,7 +14,6 @@ mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 cp scripts/Info.plist "$app/Contents/Info.plist"
 cp "$bin/FociMenu" "$app/Contents/MacOS/Foci"
 cp "$bin/foci" "$app/Contents/Resources/foci"
-cp config.example.json "$app/Contents/Resources/"
 xcrun actool icon/AppIcon.icon --compile "$app/Contents/Resources" --app-icon AppIcon \
   --platform macosx --minimum-deployment-target 14.0 \
   --output-partial-info-plist build/icon-partial.plist >/dev/null

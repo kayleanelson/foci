@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
   name: "foci",
-  platforms: [.macOS(.v14)],
+  platforms: [.macOS(.v15)],
   targets: [
     .target(name: "FociCore"),
     .target(name: "FociSystem", dependencies: ["FociCore"]),

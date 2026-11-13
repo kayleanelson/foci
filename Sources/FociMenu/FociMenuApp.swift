@@ -4,6 +4,7 @@ import SwiftUI
 
 @main
 struct FociMenuApp: App {
+  @NSApplicationDelegateAdaptor private var delegate: AppDelegate
   @State private var model = MenuModel()
 
   init() {
@@ -14,13 +15,49 @@ struct FociMenuApp: App {
     MenuBarExtra {
       MenuContent(model: model)
     } label: {
-      Image(systemName: model.menuBarSymbol)
+      MenuBarLabel(symbol: model.menuBarSymbol)
     }
+
+    Window("Foci Settings", id: Self.settingsWindow) {
+      SettingsView(model: model)
+    }
+    .windowResizability(.contentMinSize)
+    .defaultSize(width: 720, height: 800)
+    .defaultLaunchBehavior(.suppressed)
+  }
+
+  static let settingsWindow = "settings"
+}
+
+/// Opening Foci while it runs (Finder, Spotlight) shows Settings rather than nothing: a menu
+/// bar app has no window to bring forward, and its icon may be hidden (e.g. by Bartender).
+final class AppDelegate: NSObject, NSApplicationDelegate {
+  static let reopened = Notification.Name("local.foci.reopened")
+
+  func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+    NotificationCenter.default.post(name: Self.reopened, object: nil)
+    return false
+  }
+}
+
+/// The menu bar label is the one view alive for the app's whole life, so it is where a reopen
+/// can reach `openWindow`.
+struct MenuBarLabel: View {
+  let symbol: String
+  @Environment(\.openWindow) private var openWindow
+
+  var body: some View {
+    Image(systemName: symbol)
+      .onReceive(NotificationCenter.default.publisher(for: AppDelegate.reopened)) { _ in
+        openWindow(id: FociMenuApp.settingsWindow)
+        NSApplication.shared.activate()
+      }
   }
 }
 
 struct MenuContent: View {
   let model: MenuModel
+  @Environment(\.openWindow) private var openWindow
 
   var body: some View {
     if let config = model.config {
@@ -28,7 +65,7 @@ struct MenuContent: View {
         Toggle(
           isOn: Binding(get: { model.state.current == name }, set: { _ in model.switchTo(name) })
         ) {
-          Label(name.capitalized, systemImage: model.symbol(for: name))
+          Label(displayName(of: name), systemImage: model.symbol(for: name))
         }
         .disabled(model.busy)
       }
@@ -48,7 +85,11 @@ struct MenuContent: View {
     Toggle(
       "Launch at Login",
       isOn: Binding(get: { model.launchesAtLogin }, set: { model.setLaunchesAtLogin($0) }))
-    Button("Edit Config…") { model.openConfig() }
+    Button("Settings…") {
+      openWindow(id: FociMenuApp.settingsWindow)
+      NSApplication.shared.activate()
+    }
+    .keyboardShortcut(",")
     Divider()
     Button("Quit Foci") { NSApplication.shared.terminate(nil) }
       .keyboardShortcut("q")
