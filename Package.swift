@@ -6,6 +6,8 @@ let package = Package(
   platforms: [.macOS(.v14)],
   targets: [
     .target(name: "FociCore"),
+    .target(name: "FociSystem", dependencies: ["FociCore"]),
     .testTarget(name: "FociCoreTests", dependencies: ["FociCore"]),
+    .testTarget(name: "FociSystemTests", dependencies: ["FociSystem"]),
   ]
 )
