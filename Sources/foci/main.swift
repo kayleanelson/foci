@@ -29,10 +29,10 @@ func execute(_ command: Command) async throws -> Int32 {
     guard let name = try profile ?? store.loadState().current else {
       fail("no current profile; name one: foci capture-dock <profile>", code: 64)
     }
-    _ = try config.profile(name)
+    let canonical = try config.canonicalName(name)
     let snapshot = DockLayout.snapshot(of: try MacSystem().readDockPrefs())
-    try store.saveDock(DockLayout.encode(snapshot), for: name)
-    print("saved the current Dock as \(name)'s")
+    try store.saveDock(DockLayout.encode(snapshot), for: canonical)
+    print("saved the current Dock as \(canonical)'s")
   case .switchTo(let request):
     let switcher = Switcher(
       config: try store.loadConfig(), system: MacSystem(), store: store,

@@ -67,7 +67,7 @@ public struct Switcher {
   /// Each step's failure is recorded and the switch carries on, so one stubborn app never
   /// leaves the desktop half-switched.
   public func run(_ request: SwitchRequest) async throws -> SwitchReport {
-    let target = request.target
+    let target = try config.canonicalName(request.target)
     let incoming = try config.profile(target)
     var state = try store.loadState()
 

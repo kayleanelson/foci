@@ -22,6 +22,12 @@ import Testing
     }
   }
 
+  @Test(arguments: ["Work", "work", "WORK"])
+  func profileNamesMatchWithoutCase(typed: String) throws {
+    let config = Config(profiles: ["Work": Profile(), "personal": Profile()])
+    #expect(try config.canonicalName(typed) == "Work")
+  }
+
   @Test func exampleConfigDecodes() throws {
     let url = URL(fileURLWithPath: #filePath)
       .deletingLastPathComponent().appending(path: "../../config.example.json")

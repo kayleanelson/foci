@@ -281,6 +281,17 @@ import Testing
     #expect(store.state.current == "personal")
   }
 
+  @Test func targetTypedInAnyCaseRecordsTheConfiguredName() async throws {
+    let store = MemoryStore(state: State(current: "work"))
+    let report = try await run(
+      SwitchRequest(target: "PERSONAL"), system: FakeSystem(), store: store)
+    #expect(report.outcome == .switched)
+    #expect(store.state.current == "personal")
+
+    let again = try await run(SwitchRequest(target: "Personal"), system: FakeSystem(), store: store)
+    #expect(again.outcome == .skipped("already in personal"))
+  }
+
   @Test func unknownTargetChangesNothing() async throws {
     let system = FakeSystem()
     let store = MemoryStore(state: State(current: "work"))

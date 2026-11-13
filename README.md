@@ -53,7 +53,7 @@ work or on a holiday. To have Focus drive switching:
 1. Shortcuts → Automation → New → **Focus** → Work → *When Turning On* →
    **Run Immediately**.
 2. Action: **Run Shell Script**:
-   `/Applications/Foci.app/Contents/Resources/foci switch work --source focus`
+   `/Applications/Foci.app/Contents/Resources/foci switch Work --source focus`
 3. Do the same for Personal.
 4. Turn on **Follow Focus** in Settings › General.
 

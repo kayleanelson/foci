@@ -50,6 +50,16 @@ public struct Config: Codable, Equatable, Sendable {
 
   public var profileNames: [String] { profiles.keys.sorted() }
 
+  /// The profile's name as configured, matched without case: a Shortcuts automation written
+  /// with "work" keeps working after the profile is renamed "Work". Settings keeps names
+  /// unique without case, so the match is never ambiguous.
+  public func canonicalName(_ name: String) throws -> String {
+    guard
+      let match = profiles.keys.first(where: { $0.caseInsensitiveCompare(name) == .orderedSame })
+    else { throw FociError.unknownProfile(name, known: profileNames) }
+    return match
+  }
+
   public func profile(_ name: String) throws -> Profile {
     guard let profile = profiles[name] else {
       throw FociError.unknownProfile(name, known: profileNames)
