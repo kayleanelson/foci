@@ -1,14 +1,24 @@
+import itertools
 import math
 import unittest
 
 import render
-from color import contrast, derive
+from color import VISIONS, contrast, derive, distance, simulate
 
 
 class Color(unittest.TestCase):
-    def test_palette_round_trips_through_oklch(self):
-        for hex_color in render._PALETTE["palette"].values():
+    def test_brand_colors_round_trip_through_oklch(self):
+        for hex_color in render.BRAND.values():
             self.assertEqual(derive(hex_color), hex_color)
+
+    def test_icon_colors_stay_apart_in_every_color_vision(self):
+        # The discs and the ground must separate for everyone, not only by hue.
+        for mode in render.MODES:
+            colors = {role: render.role_color(role, mode) for role in render.ROLES}
+            for (a, ca), (b, cb) in itertools.combinations(colors.items(), 2):
+                for vision in VISIONS:
+                    gap = distance(simulate(ca, vision), simulate(cb, vision))
+                    self.assertGreaterEqual(gap, 10, f"{a}/{b} {mode} {vision}")
 
 
 class Icon(unittest.TestCase):
