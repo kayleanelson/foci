@@ -16,7 +16,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from color import contrast, derive  # noqa: E402
+from color import derive  # noqa: E402
 
 MODES = ["light", "dark"]
 # brand.json is a verbatim copy of the shared branding palette (make brand); palette.json
@@ -32,12 +32,14 @@ def role_color(role, mode):
 
 # A 1000-unit square: keep every coordinate exact in binary (multiples of 0.125) so the
 # output is identical on every run.
-# The largest disc radius that keeps the balanced pair this far from every canvas edge.
-MARGIN = 100
 CENTER = 500
-# Optical center: a mark centerd exactly looks low, so its visual weight sits 2% of the
-# canvas above the middle.
+# The pair's outline is centered on the optical center: a mark centered exactly looks low,
+# so it sits 2% of the canvas above the middle. The outline, not visual weight: weighting
+# each disc by its contrast once pushed the pair 54 units right and 51 up, and two plain
+# discs are judged centered by their outline.
 OPTICAL_CENTER = (CENTER, CENTER - 20)
+# The radius is the largest that keeps the outline this far from every canvas edge.
+MARGIN = 100
 # The discs sit one radius apart, so each one's edge passes through the other's center,
 # along a 30-degree diagonal. Near misses of either (0.96 R at 28.6 degrees, once) read as
 # accidental.
@@ -54,53 +56,20 @@ def snap(v):
     return round(v * 8) / 8
 
 
-def weight(role):
-    """How hard a shape pulls the eye: its contrast with the ground, in the default
-    appearance."""
-    return contrast(role_color(role, "light"), role_color("ground", "light"))
-
-
-def visual_center(front, back, gap, r, step=2):
-    """The centroid of the two shapes, each point weighted by its shape's pull. The light
-    front disc outweighs the green crescent, so centring the bounding box (or the plain
-    area) leaves the icon heavy toward the front."""
-    weights = {"front": weight("front"), "back": weight("back")}
-    total = sx = sy = 0.0
-    left, top = min(front[0], back[0]) - r, min(front[1], back[1]) - r
-    for i in range(int(2 * r + abs(front[0] - back[0])) // step + 1):
-        for j in range(int(2 * r + abs(front[1] - back[1])) // step + 1):
-            x, y = left + i * step, top + j * step
-            if math.dist((x, y), front) <= r:
-                w = weights["front"]
-            elif math.dist((x, y), back) <= r and math.dist((x, y), front) > r + gap:
-                w = weights["back"]
-            else:
-                continue
-            total += w
-            sx += w * x
-            sy += w * y
-    return sx / total, sy / total
-
-
-def place(r):
-    dx, dy = r / 2 * math.cos(ANGLE), r / 2 * math.sin(ANGLE)
-    front, back = (-dx, dy), (dx, -dy)
-    cx, cy = visual_center(front, back, GAP, r)
-    ox, oy = OPTICAL_CENTER[0] - cx, OPTICAL_CENTER[1] - cy
-    return (snap(front[0] + ox), snap(front[1] + oy)), (snap(back[0] + ox), snap(back[1] + oy))
-
-
-def reach(front, back, r):
-    """How far the pair extends from the canvas center, toward its nearest edge."""
-    return max(abs(c - CENTER) + r for c in (*front, *back))
+def outline(front, back, r):
+    """The pair's bounding box: left, top, right, bottom."""
+    return (min(front[0], back[0]) - r, min(front[1], back[1]) - r,
+            max(front[0], back[0]) + r, max(front[1], back[1]) + r)
 
 
 def fit():
-    """Balancing shifts the pair off-center, so the radius is solved for afterwards: the
-    shapes scale with r, so one rescale lands within a snap of the margin."""
-    r = 250
-    r = math.floor(r * (CENTER - MARGIN) / reach(*place(r), r) * 8) / 8
-    return r, *place(r)
+    # Centers are r/2 either side of the middle along ANGLE, so the outline is
+    # (2 + cos) r wide and (2 + sin) r tall; the lift costs margin on one side.
+    cos, sin = math.cos(ANGLE), math.sin(ANGLE)
+    r = math.floor(8 * min((2 * (CENTER - MARGIN)) / (2 + cos),
+                           (2 * (CENTER - MARGIN - (CENTER - OPTICAL_CENTER[1]))) / (2 + sin))) / 8
+    (cx, cy), dx, dy = OPTICAL_CENTER, r / 2 * cos, r / 2 * sin
+    return r, (snap(cx - dx), snap(cy + dy)), (snap(cx + dx), snap(cy - dy))
 
 
 R, FRONT, BACK = fit()
