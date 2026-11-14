@@ -1,4 +1,4 @@
-"""sRGB hex to and from OKLCH, so icon colours can be derived from the palette by lightness
+"""sRGB hex to and from OKLCH, so icon colors can be derived from the palette by lightness
 and chroma while keeping its hues. OKLCH rather than HSL because its lightness is perceptual:
 two tones at the same L look equally light whatever their hue."""
 
@@ -14,8 +14,8 @@ def _gamma(c):
     return 12.92 * c if c <= 0.0031308 else 1.055 * c ** (1 / 2.4) - 0.055
 
 
-def to_oklch(hex_colour):
-    r, g, b = (_linear(int(hex_colour[i:i + 2], 16) / 255) for i in (1, 3, 5))
+def to_oklch(hex_color):
+    r, g, b = (_linear(int(hex_color[i:i + 2], 16) / 255) for i in (1, 3, 5))
     l, m, s = (math.cbrt(x) for x in (
         0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b,
         0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b,
@@ -38,14 +38,14 @@ def from_oklch(lightness, chroma, hue):
     return "#" + "".join(f"{round(_gamma(c) * 255):02X}" for c in rgb)
 
 
-def derive(hex_colour, lightness=None, chroma=None):
-    """The colour with its hue kept and its lightness or chroma replaced."""
-    l, c, h = to_oklch(hex_colour)
+def derive(hex_color, lightness=None, chroma=None):
+    """The color with its hue kept and its lightness or chroma replaced."""
+    l, c, h = to_oklch(hex_color)
     return from_oklch(l if lightness is None else lightness, c if chroma is None else chroma, h)
 
 
-def luminance(hex_colour):
-    r, g, b = (_linear(int(hex_colour[i:i + 2], 16) / 255) for i in (1, 3, 5))
+def luminance(hex_color):
+    r, g, b = (_linear(int(hex_color[i:i + 2], 16) / 255) for i in (1, 3, 5))
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 

@@ -16,13 +16,13 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from colour import contrast, derive  # noqa: E402
+from color import contrast, derive  # noqa: E402
 
 MODES = ["light", "dark"]
 _PALETTE = json.loads((HERE / "palette.json").read_text())
 
 
-def role_colour(role, mode):
+def role_color(role, mode):
     spec = dict(_PALETTE["roles"][role][mode])
     return derive(_PALETTE["palette"][spec.pop("from")], **spec)
 
@@ -31,17 +31,17 @@ def role_colour(role, mode):
 # output is identical on every run.
 # The largest disc radius that keeps the balanced pair this far from every canvas edge.
 MARGIN = 100
-CENTRE = 500
-# Optical centre: a mark centred exactly looks low, so its visual weight sits 2% of the
+CENTER = 500
+# Optical center: a mark centerd exactly looks low, so its visual weight sits 2% of the
 # canvas above the middle.
-OPTICAL_CENTRE = (CENTRE, CENTRE - 20)
-# The discs sit one radius apart, so each one's edge passes through the other's centre,
+OPTICAL_CENTER = (CENTER, CENTER - 20)
+# The discs sit one radius apart, so each one's edge passes through the other's center,
 # along a 30-degree diagonal. Near misses of either (0.96 R at 28.6 degrees, once) read as
 # accidental.
 ANGLE = math.radians(30)
 GAP = 40
 # The menu bar glyph: a template sized in whole points so its frame lands on the pixel grid
-# at 1x, with a 2 pt gap, wider than the app icon's because a single colour leaves only the
+# at 1x, with a 2 pt gap, wider than the app icon's because a single color leaves only the
 # gap to separate the discs.
 GLYPH_PT = (18, 16)
 GLYPH_GAP_PT = 2
@@ -54,10 +54,10 @@ def snap(v):
 def weight(role):
     """How hard a shape pulls the eye: its contrast with the ground, in the default
     appearance."""
-    return contrast(role_colour(role, "light"), role_colour("ground", "light"))
+    return contrast(role_color(role, "light"), role_color("ground", "light"))
 
 
-def visual_centre(front, back, gap, r, step=2):
+def visual_center(front, back, gap, r, step=2):
     """The centroid of the two shapes, each point weighted by its shape's pull. The light
     front disc outweighs the green crescent, so centring the bounding box (or the plain
     area) leaves the icon heavy toward the front."""
@@ -82,21 +82,21 @@ def visual_centre(front, back, gap, r, step=2):
 def place(r):
     dx, dy = r / 2 * math.cos(ANGLE), r / 2 * math.sin(ANGLE)
     front, back = (-dx, dy), (dx, -dy)
-    cx, cy = visual_centre(front, back, GAP, r)
-    ox, oy = OPTICAL_CENTRE[0] - cx, OPTICAL_CENTRE[1] - cy
+    cx, cy = visual_center(front, back, GAP, r)
+    ox, oy = OPTICAL_CENTER[0] - cx, OPTICAL_CENTER[1] - cy
     return (snap(front[0] + ox), snap(front[1] + oy)), (snap(back[0] + ox), snap(back[1] + oy))
 
 
 def reach(front, back, r):
-    """How far the pair extends from the canvas centre, toward its nearest edge."""
-    return max(abs(c - CENTRE) + r for c in (*front, *back))
+    """How far the pair extends from the canvas center, toward its nearest edge."""
+    return max(abs(c - CENTER) + r for c in (*front, *back))
 
 
 def fit():
-    """Balancing shifts the pair off-centre, so the radius is solved for afterwards: the
+    """Balancing shifts the pair off-center, so the radius is solved for afterwards: the
     shapes scale with r, so one rescale lands within a snap of the margin."""
     r = 250
-    r = math.floor(r * (CENTRE - MARGIN) / reach(*place(r), r) * 8) / 8
+    r = math.floor(r * (CENTER - MARGIN) / reach(*place(r), r) * 8) / 8
     return r, *place(r)
 
 
@@ -129,11 +129,11 @@ def svg(fill, path):
 
 
 def front(mode):
-    return svg(role_colour("front", mode), circle(*FRONT, R))
+    return svg(role_color("front", mode), circle(*FRONT, R))
 
 
 def back(mode):
-    return svg(role_colour("back", mode), crescent(BACK, FRONT, R, R + GAP))
+    return svg(role_color("back", mode), crescent(BACK, FRONT, R, R + GAP))
 
 
 def glyph():
@@ -153,12 +153,12 @@ def glyph():
             '</svg>\n')
 
 
-def solid(hex_colour):
-    r, g, b = (int(hex_colour[i:i + 2], 16) / 255 for i in (1, 3, 5))
+def solid(hex_color):
+    r, g, b = (int(hex_color[i:i + 2], 16) / 255 for i in (1, 3, 5))
     return {"solid": f"srgb:{r:.5f},{g:.5f},{b:.5f},1.00000"}
 
 
-# Icon Composer's own form: the unspecialised entry is the light value.
+# Icon Composer's own form: the unspecialized entry is the light value.
 def by_appearance(value):
     return [{"value": value("light")}, {"appearance": "dark", "value": value("dark")}]
 
@@ -175,7 +175,7 @@ def group(layers):
 
 DRAWINGS = {"front": front, "back": back}
 ICON = {
-    "fill-specializations": by_appearance(lambda mode: solid(role_colour("ground", mode))),
+    "fill-specializations": by_appearance(lambda mode: solid(role_color("ground", mode))),
     "groups": [group(["front"]), group(["back"])],
     "supported-platforms": {"squares": ["macOS"]},
 }
