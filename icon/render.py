@@ -19,15 +19,16 @@ sys.path.insert(0, str(HERE))
 from color import derive  # noqa: E402
 
 MODES = ["light", "dark"]
-# brand.json is a verbatim copy of the shared branding palette (make brand); palette.json
-# says which brand color each part of the icon takes, optionally moved in OKLCH.
-BRAND = json.loads((HERE / "brand.json").read_text())
+# tokens.json is a verbatim copy of the shared branding tokens (make brand); palette.json
+# says which token each part of the icon takes in each appearance, optionally moved in
+# OKLCH.
+TOKENS = json.loads((HERE / "tokens.json").read_text())
 ROLES = json.loads((HERE / "palette.json").read_text())["roles"]
 
 
 def role_color(role, mode):
     spec = dict(ROLES[role][mode])
-    return derive(BRAND[spec.pop("from")], **spec)
+    return derive(TOKENS[spec.pop("token")][mode], **spec)
 
 
 # A 1000-unit square: keep every coordinate exact in binary (multiples of 0.125) so the

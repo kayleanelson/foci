@@ -8,8 +8,10 @@ from color import VISIONS, contrast, derive, distance, simulate
 
 class Color(unittest.TestCase):
     def test_brand_colors_round_trip_through_oklch(self):
-        for hex_color in render.BRAND.values():
-            self.assertEqual(derive(hex_color), hex_color)
+        for values in render.TOKENS.values():
+            for hex_color in values.values():
+                if len(hex_color) == 7:  # translucent tokens carry alpha; the icon uses none
+                    self.assertEqual(derive(hex_color), hex_color)
 
     def test_icon_colors_stay_apart_in_every_color_vision(self):
         # The discs and the ground must separate for everyone, not only by hue.

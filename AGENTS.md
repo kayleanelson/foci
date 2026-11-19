@@ -15,9 +15,10 @@ engine.
   `icon/Glyphs.xcassets` (menu bar glyph) from `icon/render.py` and
   `icon/palette.json`. Never edit either by hand; `make check` fails if they
   drift from the script.
-- `make brand` — copy the shared palette from `../branding/palette.json` into
-  `icon/brand.json` (read-only source; never edit branding from here), then
-  `make icon`. `icon/palette.json` only says which brand color each part takes.
+- `make brand` — copy the shared tokens from `../branding/tokens.json` into
+  `icon/tokens.json` (read-only source; never edit branding from here), then
+  `make icon`. `icon/palette.json` only says which token each part takes in
+  each appearance.
   `make check` fails if branding has changed since the last copy.
 - `swift run foci status` / `swift run foci switch work` — exercise the CLI.
 

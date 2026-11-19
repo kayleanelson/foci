@@ -1,16 +1,16 @@
 {
   "roles": {
     "ground": {
-      "light": { "from": "text" },
-      "dark": { "from": "dark-surface" }
+      "light": { "token": "text" },
+      "dark": { "token": "surface" }
     },
     "front": {
-      "light": { "from": "background" },
-      "dark": { "from": "text-on-dark" }
+      "light": { "token": "background" },
+      "dark": { "token": "text" }
     },
     "back": {
-      "light": { "from": "green" },
-      "dark": { "from": "green" }
+      "light": { "token": "brand" },
+      "dark": { "token": "brand" }
     }
   }
 }

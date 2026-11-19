@@ -22,15 +22,15 @@ app:
 icon:
 	python3 icon/render.py
 
-BRAND := ../branding/palette.json
+BRAND := ../branding/tokens.json
 
-# Copies the shared branding palette in, so the build never needs the branding folder.
+# Copies the shared branding tokens in, so the build never needs the branding folder.
 brand:
-	cp $(BRAND) icon/brand.json
+	cp $(BRAND) icon/tokens.json
 
 # Fails if branding changed since the last make brand; skipped where branding is absent.
 brand-check:
-	@if [ -f $(BRAND) ]; then cmp -s $(BRAND) icon/brand.json || { echo "branding changed: run make brand && make icon"; exit 1; }; else echo "no $(BRAND); skipping"; fi
+	@if [ -f $(BRAND) ]; then cmp -s $(BRAND) icon/tokens.json || { echo "branding changed: run make brand && make icon"; exit 1; }; else echo "no $(BRAND); skipping"; fi
 
 icon-test:
 	python3 -m unittest discover -s icon -p 'test_*.py'
